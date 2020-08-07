@@ -12,7 +12,7 @@ describe("Test constructor", () => {
 		expect(v.validate).toBeInstanceOf(Function);
 		expect(v.add).toBeInstanceOf(Function);
 
-		expect(Object.keys(v.rules).length).toBe(18);
+		expect(Object.keys(v.rules).length).toBe(21);
 	});
 
 	it("should create instance with custom messages", () => {
@@ -47,6 +47,47 @@ describe("Test constructor", () => {
 		expect(v2.messages).toBeDefined();
 		expect(v2.messages.numberMin).toBe("Egyedi hibaüzenet");
 		expect(v2.messages.numberMax).toBe("The '{field}' field must be less than or equal to {expected}.");
+	});
+
+	it("should set aliases", () => {
+		const aliases = {
+			a: { type: "string" },
+			b: { type: "string" }
+		};
+
+		const v = new Validator({
+			aliases
+		});
+
+		expect(v.aliases).toBeInstanceOf(Object);
+		expect(v.aliases.a).toEqual(aliases.a);
+		expect(v.aliases.b).toEqual(aliases.b);
+
+	});
+
+	it("should set customRules", () => {
+		const customRules = {
+			a: () => "",
+			b: () => ""
+		};
+
+		const v = new Validator({
+			customRules
+		});
+
+		expect(v.rules).toBeInstanceOf(Object);
+		expect(v.rules.a).toEqual(customRules.a);
+		expect(v.rules.b).toEqual(customRules.b);
+	});
+
+	it("should apply plugins", () => {
+		const plugin = jest.fn();
+		const v = new Validator({
+			plugins: [plugin]
+		});
+
+		expect(plugin).toBeCalledTimes(1);
+		expect(plugin).toBeCalledWith(v);
 	});
 
 });
@@ -92,7 +133,6 @@ describe("Test add", () => {
 			source: `
 				if (value % 2 != 0)
 					${this.makeError({ type: "evenNumber",  actual: "value", messages })}
-
 				return value;
 			`
 		};
@@ -115,11 +155,12 @@ describe("Test add", () => {
 		check = v.compile(schema);
 
 		const context = {
-			customs: {},
+			customs: expect.any(Object),
 			rules: expect.any(Array),
 			fn: expect.any(Array),
 			index: 2
 		};
+
 
 		expect(validFn).toHaveBeenCalledTimes(1);
 		expect(validFn).toHaveBeenCalledWith(expect.any(Object), "a", context);
@@ -184,7 +225,7 @@ describe("Test getRuleFromSchema method", () => {
 		}).toThrowError("Invalid 's' type in validator schema.");
 	});
 
-	describe("Test string shorthard rules", () => {
+	describe("Test string shorthand rules", () => {
 
 		it("should convert only type", () => {
 			const res = v.getRuleFromSchema("string");
@@ -201,6 +242,41 @@ describe("Test getRuleFromSchema method", () => {
 			expect(res.schema).toEqual({ type: "string", empty: false, alpha: false, trim: true, some: "1234kg" });
 		});
 
+	});
+
+	describe("Test objects shorthand rule ($$type)", () => {
+		it("should convert", () => {
+			const res = v.getRuleFromSchema({
+				$$type: "object",
+				name: { type: "string" },
+				age: { type: "number" }
+			});
+
+			expect(res.schema).toEqual({
+				type: "object" ,
+				props: {
+					name: { type: "string" },
+					age: { type: "number" }
+				}
+			});
+		});
+
+		it("should work with other shorthand rules", () => {
+			const res = v.getRuleFromSchema({
+				$$type: "object|optional",
+				name: { type: "string" },
+				age: { type: "number" }
+			});
+
+			expect(res.schema).toEqual({
+				type: "object" ,
+				optional: true,
+				props: {
+					name: { type: "string" },
+					age: { type: "number" }
+				}
+			});
+		});
 	});
 });
 
@@ -257,34 +333,27 @@ describe("Test compile (integration test)", () => {
 
 	/*
 	describe("Test check generator with custom path & parent", () => {
-
 		it("when schema is defined as an array, and custom path & parent are specified, they should be forwarded to validators", () => {
 			const v = new Validator();
 			const customValidator = jest.fn().mockReturnValue(true);	// Will be called with (value, schema, path, parent)
 			v.add("customValidator", customValidator);
-
 			const validate = v.compile([{ type: "customValidator" }]);
 			const parent = {};
 			const res = validate({ customValue: 4711 }, "customPath", parent);
-
 			expect(res).toBe(true);
 			expect(customValidator.mock.calls[0][2]).toBe("customPath");
 			expect(customValidator.mock.calls[0][3]).toBe(parent);
 		});
-
 		it("when schema is defined as an array, path & parent should be set to default values in validators", () => {
 			const v = new Validator();
 			const customValidator = jest.fn().mockReturnValue(true);	// Will be called with (value, schema, path, parent)
 			v.add("customValidator", customValidator);
-
 			const validate = v.compile([{ type: "customValidator" }]);
 			const res = validate({ customValue: 4711 });
-
 			expect(res).toBe(true);
 			expect(customValidator.mock.calls[0][2]).toBeUndefined();
 			expect(customValidator.mock.calls[0][3]).toBeNull();
 		});
-
 		it("when schema is defined as an object, and custom path is specified, it should be forwarded to validators", () => {
 			// Note: as the item we validate always must be an object, there is no use
 			// of specifying a custom parent, like for the schema-as-array above.
@@ -293,24 +362,294 @@ describe("Test compile (integration test)", () => {
 			const v = new Validator();
 			const customValidator = jest.fn().mockReturnValue(true);	// Will be called with (value, schema, path, parent)
 			v.add("customValidator", customValidator);
-
 			const validate = v.compile({ customValue: { type: "customValidator" } });
 			const res = validate({ customValue: 4711 }, "customPath");
-
 			expect(res).toBe(true);
 			expect(customValidator.mock.calls[0][2]).toBe("customPath.customValue");
 		});
-
 		it("when schema is defined as an object, path should be set to default value in validators", () => {
 			const v = new Validator();
 			const customValidator = jest.fn().mockReturnValue(true);	// Will be called with (value, schema, path, parent)
 			v.add("customValidator", customValidator);
-
 			const validate = v.compile({ customValue: { type: "customValidator" } });
 			const res = validate({ customValue: 4711 });
-
 			expect(res).toBe(true);
 			expect(customValidator.mock.calls[0][2]).toBe("customValue");
 		});
 	}); */
 });
+
+describe("Test aliases", () => {
+	const v = new Validator();
+
+	const aliasName = "username";
+	const aliasTo = {
+		type: "string",
+		min: 4,
+		max: 10
+	};
+
+	it("should add alias", () => {
+		v.alias(aliasName, aliasTo);
+
+		expect(v.rules[aliasName]).toBeUndefined();
+		expect(v.aliases[aliasName]).toEqual(aliasTo);
+	});
+
+	it("should throw an error when alias name is the same with one of rule name", () => {
+		expect(() => v.alias("string", { type: "bar" })).toThrowError();
+		expect(v.rules.string).toBeTruthy();
+		expect(v.aliases.string).toBeUndefined();
+	});
+
+	it("should work with simple alias", () => {
+		const check = v.compile({
+			username: "username"
+		});
+
+		expect(check({ username: "abcdef" })).toEqual(true);
+		expect(check({})[0].type).toEqual("required");
+		expect(check({ username: "aef" })[0].type).toBe("stringMin");
+		expect(check({ username: "abcdabcdabcd" })[0].type).toBe("stringMax");
+	});
+
+	it("should extend the original alias", () => {
+		const check = v.compile({
+			username: {
+				type: "username",
+				optional: true,
+				min: 2
+			}
+		});
+
+		expect(check({ username: "abcdef" })).toEqual(true);
+		expect(check({})).toEqual(true);
+		expect(check({ username: "aef" })).toBe(true);
+		expect(check({ username: "a" })[0].type).toBe("stringMin");
+	});
+});
+
+describe("Test custom validation v1", () => {
+	const v = new Validator({
+		messages: {
+			evenNumber: "The '{field}' field must be an even number! Actual: {actual}"
+		}
+	});
+
+	let check;
+	const fn = jest.fn();
+
+
+	it("should compile without error", () => {
+
+		check = v.compile({
+			num: {
+				type: "number",
+				min: 10,
+				max: 15,
+				integer: true,
+				custom(value){
+					fn(value);
+					if (value % 2 !== 0) return [{ type: "evenNumber", actual: value }];
+				}
+			}
+		});
+
+		expect(typeof check).toBe("function");
+	});
+
+	it("should work correctly with custom validator", () => {
+		const res = check({num: 12});
+		expect(res).toBe(true);
+		expect(fn).toBeCalledWith(12);
+
+		expect(check({num: 8})[0].type).toEqual("numberMin");
+		expect(check({num: 18})[0].type).toEqual("numberMax");
+		expect(check({num: 13})[0].type).toEqual("evenNumber");
+	});
+});
+
+describe("Test custom validation", () => {
+	const v = new Validator({
+		useNewCustomCheckerFunction: true,
+		messages: {
+			evenNumber: "The '{field}' field must be an even number! Actual: {actual}"
+		}
+	});
+
+	let check;
+	const fn = jest.fn();
+
+
+	it("should compile without error", () => {
+
+		check = v.compile({
+			num: {
+				type: "number",
+				min: 10,
+				max: 15,
+				integer: true,
+				custom(value, errors){
+					fn(value, errors);
+					if (value % 2 !== 0) errors.push({ type: "evenNumber", actual: value });
+					return value;
+				}
+			}
+		});
+
+		expect(typeof check).toBe("function");
+	});
+
+	it("should work correctly with custom validator", () => {
+		const res = check({num: 12});
+		expect(res).toBe(true);
+		expect(fn).toBeCalledWith(12, []);
+
+		expect(check({num: 8})[0].type).toEqual("numberMin");
+		expect(check({num: 18})[0].type).toEqual("numberMax");
+		expect(check({num: 13})[0].type).toEqual("evenNumber");
+	});
+
+	it("should call checker function after build-in rule", () => {
+		// depended to number rule
+		const checkerFn = jest.fn((v) => v);
+
+		const schema = {
+			a: {
+				type: "number",
+				convert: true,
+				custom: checkerFn
+			}
+		};
+		const check = v.compile(schema);
+		const o = { a: "123" };
+
+		expect(check(o)).toBe(true);
+		expect(checkerFn).toBeCalledTimes(1);
+		expect(checkerFn.mock.calls[0][0]).toBe(123);
+	});
+});
+
+describe("Test default settings", () => {
+	const v = new Validator({
+		defaults: {
+			object: {
+				strict: "remove"
+			}
+		}
+	});
+
+	it("should consider default settings", () => {
+		const check = v.compile({
+			foo: {
+				type: "object",
+				props: {
+					a: "string"
+				}
+			}
+		});
+
+		const o = {
+			foo: {
+				a: "x",
+				b: "y"
+			}
+		};
+
+		expect(check(o)).toBe(true);
+		expect(o).toEqual({
+			foo: {
+				a: "x"
+			}
+		});
+	});
+
+	it("should override default setting", () => {
+		const check = v.compile({
+			foo: {
+				type: "object",
+				strict: false,
+				props: {
+					a: "string"
+				}
+			}
+		});
+
+		const o = {
+			foo: {
+				a: "x",
+				b: "y"
+			},
+		};
+
+		expect(check(o)).toBe(true);
+		expect(o).toEqual({
+			foo: {
+				a: "x",
+				b: "y"
+			}
+		});
+	});
+});
+
+describe("Test objects shorthand", () => {
+	const v = new Validator();
+
+	it("should work with nested objects", () => {
+		const check = v.compile({
+			dot: {
+				$$type: "object",
+				x: "number",
+				y: "number",
+			},
+			circle: {
+				$$type: "object",
+				o: {
+					$$type: "object",
+					x: "number",
+					y: "number",
+				},
+				r: "number"
+			}
+		});
+
+		expect(
+			check({
+				dot: { x: 10, y: 3 },
+				circle: {
+					o: { x: 10, y: 3 },
+					r: 30
+				}
+			})
+		).toBe(true);
+
+		expect(
+			check({
+				dot: { x: 10, y: 3 },
+				circle: {
+					o: { x: 10, y: "s" },
+					r: 30
+				}
+			})
+		).toEqual(expect.any(Array));
+	});
+});
+
+describe("Test plugins", () => {
+	const v = new Validator();
+
+	it("should apply plugin", () => {
+		const plugin = jest.fn();
+		v.plugin(plugin);
+
+		expect(plugin).toBeCalledTimes(1);
+		expect(plugin).toBeCalledWith(v);
+	});
+});
+
+describe("Test addMessage" , () => {
+	const v = new Validator();
+	v.addMessage("string", "C");
+	expect(v.messages.string).toBe("C");
+});
+

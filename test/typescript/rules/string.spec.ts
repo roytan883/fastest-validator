@@ -23,11 +23,37 @@ describe('TypeScript Definitions', () => {
         });
 
         it('check empty values', () => {
-            const check = v.compile({ $$root: true, type: 'string', empty: false });
+            const check = v.compile({ $$root: true, type: 'string', empty: false } as RuleString);
 
             expect(check('abc')).toEqual(true);
             expect(check('')).toEqual([{ type: 'stringEmpty', actual: '', message: 'The \'\' field must not be empty.' }]);
         });
+
+		it("check empty values (using pattern without defining empty value)", () => {
+			const check = v.compile({ $$root: true, type: "string", pattern: "^fastest" });
+
+			expect(check("fastest-validator")).toEqual(true);
+			expect(check("")).toEqual([
+				{ type: "stringPattern", actual: "", "expected": "/^fastest/", message: "The '' field fails to match the required pattern." },
+			]);
+		});
+
+		it("check empty values (using pattern and empty=true)", () => {
+			const check = v.compile({ $$root: true, type: "string", pattern: "^fastest", empty: true });
+
+			expect(check("fastest-validator")).toEqual(true);
+			expect(check("")).toEqual(true);
+		});
+
+		it("check empty values (using pattern and empty=false)", () => {
+			const check = v.compile({ $$root: true, type: "string", pattern: "^fastest", empty: false });
+
+			expect(check("fastest-validator")).toEqual(true);
+			expect(check("")).toEqual([
+				{ type: "stringEmpty", actual: "", message: "The '' field must not be empty." },
+				{ type: "stringPattern", actual: "", "expected": "/^fastest/", message: "The '' field fails to match the required pattern." },
+			]);
+		});
 
         it('check min length', () => {
             const check = v.compile({ $$root: true, type: 'string', min: 5 } as RuleString);
@@ -153,6 +179,19 @@ describe('TypeScript Definitions', () => {
             expect(check(34.76)).toEqual(true);
             expect(check(-45)).toEqual(true);
             expect(check(new Date())).toEqual(true);
+        });
+
+        it("check singleLine string", () => {
+            const schema: RuleString = { $$root: true, type: "string", singleLine: true }
+            const check = v.compile(schema);
+            const message = "The '' field must be a single line string.";
+    
+            expect(check("abc")).toEqual(true);
+            expect(check("abc\n")).toEqual([{type: "stringSingleLine", message }]);
+            expect(check(`
+                abc
+                def
+            `)).toEqual([{type: "stringSingleLine", message }]);
         });
 
         describe('Test sanitization', () => {

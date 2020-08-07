@@ -1,6 +1,8 @@
 let Validator = require("../index");
 
 let v = new Validator({
+	debug: true,
+	useNewCustomCheckerFunction: true,
 	messages: {
 		// Register our new error message text
 		evenNumber: "The '{field}' field must be an even number! Actual: {actual}",
@@ -20,7 +22,7 @@ v.add("even", function({ schema, messages }, path, context) {
 });
 
 const schema = {
-	name: { type: "string", min: 3, max: 255 },
+	/*name: { type: "string", min: 3, max: 255 },
 	age: { type: "even" },
 	weight: {
 		type: "custom",
@@ -29,18 +31,50 @@ const schema = {
 			// Register our new error message text
 			weightMin: "The weight must be greater than {expected}! Actual: {actual}"
 		},
-		check(value, schema) {
-			return (value < schema.minWeight)
-				? [{ type: "weightMin", expected: schema.minWeight, actual: value }]
-				: true;
+		check(value, errors, schema) {
+			if (value < schema.minWeight) errors.push({ type: "weightMin", expected: schema.minWeight, actual: value });
+			return value;
 		}
+	},*/
+	/*
+	distribution: {
+		type: "array",
+		custom(val) {
+			console.log("a", val);
+			return val;
+		},
+		items: {
+			type: "number",
+			custom(val) {
+				console.log("a.items", val);
+				return val;
+			}
+		}
+	}*/
+
+	/*
+	type: "object",
+	$$root: true,
+	properties: {
+		name: "string"
+	},
+	custom(val) {
+		console.log("root", val);
+		return {a : 5 };
+	},*/
+	$$root: true,
+	type: "custom",
+	a: 5,
+	check(val) {
+		console.log("root", val);
+		return val;
 	}
 };
 
-console.log(v.validate({ name: "John", age: 20, weight: 50 }, schema));
+console.log(v.validate(5/*{ name: "John", age: 20, weight: 50, distribution: [1], a: "asd" }*/, schema));
 // Returns: true
 
-console.log(v.validate({ name: "John", age: 19, weight: 50 }, schema));
+//console.log(v.validate({ name: "John", age: 19, weight: 50 }, schema));
 /* Returns an array with errors:
 	[{
 		type: 'evenNumber',
@@ -51,10 +85,10 @@ console.log(v.validate({ name: "John", age: 19, weight: 50 }, schema));
 	}]
 */
 
-console.log(v.validate({ name: "John", age: 20, weight: 50 }, schema));
+//console.log(v.validate({ name: "John", age: 20, weight: 50 }, schema));
 // Returns: true
 
-console.log(v.validate({ name: "John", age: 20, weight: 8 }, schema));
+//console.log(v.validate({ name: "John", age: 20, weight: 8 }, schema));
 /* Returns an array with errors:
 	[{
 		type: 'weightMin',

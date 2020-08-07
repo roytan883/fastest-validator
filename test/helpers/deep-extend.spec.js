@@ -10,7 +10,7 @@ describe("deepExtend", () => {
 			},
 			d: true,
 			j: [],
-			k: [1,2]
+			k: [1,2],
 		}, {
 			a: {
 				b: 10,
@@ -21,7 +21,10 @@ describe("deepExtend", () => {
 				h: "H"
 			},
 			j: "some",
-			k: [5,6]
+			k: [5,6],
+			l: [1,2],
+			r: /s/,
+			o: {}
 		});
 		expect(result).toEqual({
 			a: {
@@ -35,7 +38,28 @@ describe("deepExtend", () => {
 				h: "H"
 			},
 			j: "some",
-			k: [5,6]
+			k: [5,6],
+			l: [1,2],
+			r: /s/,
+			o: {}
+		});
+	});
+});
+
+describe("Test merge options", () => {
+	it("should consider skipIfExist option and not overwrite the existing properties", () => {
+		const result = deepExtend({
+			b: 5,
+			c: 6
+		}, {
+			b: 10,
+			e: "Hello"
+		}, { skipIfExist: true });
+
+		expect(result).toEqual({
+			b: 5,
+			c: 6,
+			e: "Hello"
 		});
 	});
 });

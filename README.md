@@ -7,15 +7,13 @@
 [![Size](https://badgen.net/bundlephobia/minzip/fastest-validator)](https://bundlephobia.com/result?p=fastest-validator)
 
 # fastest-validator [![NPM version](https://img.shields.io/npm/v/fastest-validator.svg)](https://www.npmjs.com/package/fastest-validator) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=The%20fastest%20JS%20validator%20library%20for%20NodeJS&url=https://github.com/icebob/fastest-validator&via=Icebobcsi&hashtags=nodejs,javascript)
-:zap: The fastest JS validator library for NodeJS.
-
-**If you like my work, please [donate](https://www.paypal.me/meregnorbert). Thank you!**
+:zap: The fastest JS validator library for NodeJS | Browser | Deno.
 
 ## Key features
 * blazing fast! Really!
-* 15+ built-in validators
+* 20+ built-in validators
 * many sanitizations
-* custom validators
+* custom validators & aliases
 * nested objects & array handling
 * strict object validation
 * multiple validators
@@ -45,38 +43,71 @@ $ npm run bench
 ```
 
 # Table of contents
-- [Installations](#installation)
-- [Usage](#usage)
+
+- [Table of contents](#table-of-contents)
+  - [Installation](#installation)
+    - [NPM](#npm)
+  - [Usage](#usage)
+    - [Simple method](#simple-method)
+    - [Fast method](#fast-method)
+    - [Browser usage](#browser-usage)
+    - [Deno usage](#deno-usage)
 - [Optional & required fields](#optional--required-fields)
 - [Strict validation](#strict-validation)
+  - [Remove additional fields](#remove-additional-fields)
 - [Multiple validators](#multiple-validators)
 - [Root element schema](#root-element-schema)
 - [Sanitizations](#sanitizations)
+  - [Default values](#default-values)
 - [Shorthand definitions](#shorthand-definitions)
+- [Alias definition](#alias-definition)
+- [Default options](#default-options)
 - [Built-in validators](#built-in-validators)
-    - [any](#any)
-    - [array](#array)
-    - [boolean](#boolean)
-    - [date](#date)
-    - [email](#email)
-    - [enum](#enum)
-    - [equal](#equal)
-    - [forbidden](#forbidden)
-    - [function](#function)
-    - [luhn](#luhn)
-    - [mac](#mac)
-    - [multi](#multi)
-    - [number](#number)
-    - [object](#object)
-    - [string](#string)
-    - [url](#url)
-    - [uuid](#uuid)
+  - [`any`](#any)
+  - [`array`](#array)
+    - [Properties](#properties)
+  - [`boolean`](#boolean)
+    - [Properties](#properties-1)
+  - [`class`](#class)
+    - [Properties](#properties-2)
+  - [`date`](#date)
+    - [Properties](#properties-3)
+  - [`email`](#email)
+    - [Properties](#properties-4)
+  - [`enum`](#enum)
+    - [Properties](#properties-5)
+  - [`equal`](#equal)
+    - [Properties](#properties-6)
+  - [`forbidden`](#forbidden)
+    - [Properties](#properties-7)
+  - [`function`](#function)
+  - [`luhn`](#luhn)
+  - [`mac`](#mac)
+  - [`multi`](#multi)
+  - [`number`](#number)
+    - [Properties](#properties-8)
+  - [`object`](#object)
+    - [Properties](#properties-9)
+  - [`string`](#string)
+    - [Properties](#properties-10)
+  - [`tuple`](#tuple)
+    - [Properties](#properties-11)
+  - [`url`](#url)
+    - [Properties](#properties-12)
+  - [`uuid`](#uuid)
+    - [Properties](#properties-13)
+  - [`objectID`](#objectID)
+    - [Properties](#properties-14)
 - [Custom validator](#custom-validator)
+  - [Custom validation for built-in rules](#custom-validation-for-built-in-rules)
 - [Custom error messages (l10n)](#custom-error-messages-l10n)
 - [Personalised Messages](#personalised-messages)
 - [Message types](#message-types)
+  - [Message fields](#message-fields)
+- [Plugins](#plugins)
 - [Development](#development)
 - [Test](#test)
+  - [Coverage report](#coverage-report)
 - [Contribution](#contribution)
 - [License](#license)
 - [Contact](#contact)
@@ -181,6 +212,19 @@ console.log(check({ id: 5, name: "John", status: true }));
 // Returns: true
 ```
 
+### Deno usage
+```js
+import FastestValidator from "https://dev.jspm.io/fastest-validator";
+
+const v = new FastestValidator();
+const check = v.compile({
+	name: "string",
+	age: "number",
+});
+
+console.log(check({ name: "Erf", age: 18 })); //true
+```
+
 # Optional & required fields
 Every field in the schema will be required by default. If you'd like to define optional fields, set `optional: true`.
 
@@ -250,7 +294,7 @@ The library contains several sanitizaters. **Please note, the sanitizers change 
 ## Default values
 The most common sanitizer is the `default` property. With it, you can define a default value for all properties. If the property value is `null` or `undefined`, the validator set the defined default value into the property.
 
-**Default value example**:
+**Static Default value example**:
 ```js
 const schema = {
     roles: { type: "array", items: "string", default: ["user"] },
@@ -267,6 +311,27 @@ console.log(obj);
     status: true
 }
 */
+``` 
+**Dynamic Default value**:
+Also you can use dynamic default value by defining a function that returns a value. For example, in the following code, if `createdAt` field not defined in object`, the validator sets the current time into the property:
+
+```js
+const schema = {
+    createdAt: {
+        type: "date",
+        default: () => new Date()
+    }
+};
+
+const obj = {}
+
+v.validate(obj, schema); // Valid
+console.log(obj);
+/*
+{
+    createdAt: Date(2020-07-25T13:17:41.052Z)
+}
+*/
 ```
 
 # Shorthand definitions
@@ -278,6 +343,57 @@ const schema = {
     age: "number|optional|integer|positive|min:0|max:99", // additional properties
     state: ["boolean", "number|min:0|max:1"] // multiple types
 }
+```
+
+### Nested objects
+
+```js
+const schema = {
+   dot: {
+      $$type: "object",
+      x: "number",  // object props here
+      y: "number",  // object props here
+   }, 
+   circle: {
+      $$type: "object|optional", // using other shorthands
+      o: {
+         $$type: "object",
+         x: "number",
+         y: "number",
+      },
+      r: "number"
+   }
+};
+```
+
+# Alias definition
+You can define custom aliases.
+
+```js
+v.alias('username', {
+    type: 'string',
+    min: 4,
+    max: 30
+    // ...
+});
+
+const schema = {
+    username: "username|max:100", // Using the 'username' alias
+    password: "string|min:6",
+}
+```
+
+# Default options
+You can set default rule options.
+
+```js
+var v = new FastestValidator({
+    defaults: {
+        object: {
+            strict: "remove"
+        }
+    }
+});
 ```
 
 # Built-in validators
@@ -379,7 +495,6 @@ Property | Default  | Description
 `enum`	 | `null`   | Every element must be an element of the `enum` array.
 `items`	 | `null`   | Schema for array items.
 
-
 ## `boolean`
 This is a `Boolean` validator.
 
@@ -404,6 +519,23 @@ v.validate({ status: "true" }, {
     status: { type: "boolean", convert: true}
 }); // Valid
 ```
+
+## `class`
+This is a `Class` validator to check the value is an instance of a Class.
+
+```js
+const schema = {
+    rawData: { type: "class", instanceOf: Buffer }
+}
+
+v.validate({ rawData: Buffer.from([1, 2, 3]) }, schema); // Valid
+v.validate({ rawData: 100 }, schema); // Fail
+```
+
+### Properties
+Property | Default  | Description
+-------- | -------- | -----------
+`instanceOf` | `null` | Checked Class.
 
 ## `date`
 This is a `Date` validator.
@@ -446,6 +578,7 @@ v.validate({ email: "abc@gmail" }, schema); // Fail
 ### Properties
 Property | Default  | Description
 -------- | -------- | -----------
+`empty`  | `false`   | If `true`, the validator accepts an empty array `""`.
 `mode`   | `quick`  | Checker method. Can be `quick` or `precise`.
 `normalize`   | `false`  | Normalize the e-mail address (trim & lower-case). _It's a sanitizer, it will change the value in the original object._
 
@@ -681,10 +814,12 @@ v.validate({
 ### Properties
 Property | Default  | Description
 -------- | -------- | -----------
-`strict`  | `false`| if `true` any properties which are not defined on the schema will throw an error. If `remove` all additional properties will be removed from the original object. _It's a sanitizer, it will change the original object._
+`strict`  | `false`| If `true` any properties which are not defined on the schema will throw an error. If `remove` all additional properties will be removed from the original object. _It's a sanitizer, it will change the original object._
+`minProps` | `null` | If set to a number N, will throw an error if the object has fewer than N properties.
+`maxProps` | `null` | If set to a number N, will throw an error if the object has more than N properties.
 
 ```js
-const schema = {
+let schema = {
     address: { type: "object", strict: "remove", props: {
         country: { type: "string" },
         city: "string", // short-hand
@@ -692,7 +827,7 @@ const schema = {
     } }
 }
 
-const obj = {
+let obj = {
     address: {
         country: "Italy",
         city: "Rome",
@@ -712,6 +847,46 @@ console.log(obj);
     }   
 }
 */
+
+schema = {
+  address: {
+    type: "object",
+    minProps: 2,
+    props: {
+      country: { type: "string" },
+      city: { type: "string", optional: true },
+      zip: { type: "number", optional: true }
+    }
+  }
+}
+
+obj = {
+    address: {
+        country: "Italy",
+        city: "Rome",
+        zip: 12345,
+        state: "IT"
+    }
+}
+
+v.validate(obj, schema); // Valid
+
+obj = {
+    address: {
+        country: "Italy",
+    }
+}
+
+v.validate(obj, schema); // Fail
+// [
+//   {
+//     type: 'objectMinProps',
+//     message: "The object 'address' must contain at least 2 properties.",
+//     field: 'address',
+//     expected: 2,
+//     actual: 1
+//   }
+// ]
 ```
 
 ## `string`
@@ -741,6 +916,8 @@ Property | Default  | Description
 `numeric`   | `null`   | The value must be a numeric string.
 `alphanum`   | `null`   | The value must be an alphanumeric string.
 `alphadash`   | `null`   | The value must be an alphabetic string that contains dashes.
+`hex`   | `null`   | The value must be a hex string.
+`singleLine`   | `null`   | The value must be a single line string.
 `trim`   | `null`   | If `true`, the value will be trimmed. _It's a sanitizer, it will change the value in the original object._
 `trimLeft`   | `null`   | If `true`, the value will be left trimmed. _It's a sanitizer, it will change the value in the original object._
 `trimRight`   | `null`   | If `true`, the value will be right trimmed. _It's a sanitizer, it will change the value in the original object._
@@ -772,6 +949,53 @@ console.log(obj);
 */
 ```
 
+## `tuple`
+This validator checks if a value is an `Array` with the elements order as described by the schema.
+
+**Simple example:**
+```js
+const schema = { list: "tuple" };
+
+v.validate({ list: [] }, schema); // Valid
+v.validate({ list: [1, 2] }, schema); // Valid
+v.validate({ list: ["RON", 100, true] }, schema); // Valid
+v.validate({ list: 94 }, schema); // Fail (not an array)
+```
+
+**Example with items:**
+```js
+const schema = {
+    grade: { type: "tuple", items: ["string", "number"] }
+}
+
+v.validate({ grade: ["David", 85] }, schema); // Valid
+v.validate({ grade: [85, "David"] }, schema); // Fail (wrong position)
+v.validate({ grade: ["Cami"] }, schema); // Fail (require 2 elements)
+```
+
+**Example with a more detailed schema:**
+```js
+const schema = {
+    location: { type: "tuple", items: [
+        "string",
+        { type: "tuple", empty: false, items: [
+            { type: "number", min: 35, max: 45 },
+            { type: "number", min: -75, max: -65 }
+        ] }
+    ] }
+}
+
+v.validate({ location: ['New York', [40.7127281, -74.0060152]] }, schema); // Valid
+v.validate({ location: ['New York', [50.0000000, -74.0060152]] }, schema); // Fail
+v.validate({ location: ['New York', []] }, schema); // Fail (empty array)
+```
+
+### Properties
+Property | Default  | Description
+-------- | -------- | -----------
+`empty`  | `true`   | If `true`, the validator accepts an empty array `[]`.
+`items`	 | `undefined` | Exact schema of the value items
+
 ## `url`
 This is an URL validator.
 
@@ -784,6 +1008,11 @@ v.validate({ url: "http://google.com" }, schema); // Valid
 v.validate({ url: "https://github.com/icebob" }, schema); // Valid
 v.validate({ url: "www.facebook.com" }, schema); // Fail
 ```
+
+### Properties
+Property | Default  | Description
+-------- | -------- | -----------
+`empty`  | `false`   | If `true`, the validator accepts an empty string `""`.
 
 ## `uuid`
 This is an UUID validator. 
@@ -800,14 +1029,55 @@ v.validate({ uuid: "10ba038e-48da-487b-96e8-8d3b99b6d18a", version: 5 }, schema)
 ### Properties
 Property | Default  | Description
 -------- | -------- | -----------
-`version`  | `4`   | UUID version in range 1-5.
+`version`  | `4`   | UUID version in range 1-6.
+
+## `objectID`
+You can validate BSON/MongoDB ObjectID's
+```js
+const  { ObjectID } = require("mongodb") // or anywhere else 
+
+const schema = {
+    id: {
+        type: "objectID",
+        ObjectID // passing the ObjectID class
+    }  
+}
+
+const check = v.compile(schema);
+check({ id: "5f082780b00cc7401fb8e8fc" }) // ok
+check({ id: new ObjectID() }) // ok
+check({ id: "5f082780b00cc7401fb8e8" }) // Error
+```
+
+**Pro tip:**  By using defaults props for objectID rule, No longer needed to pass `ObjectID` class in validation schema:
+
+```js
+const  { ObjectID } = require("mongodb") // or anywhere else 
+
+const v = new Validator({
+    defaults: {
+        objectID: {
+            ObjectID
+        }
+    }
+})
+
+const schema = {
+    id: "objectID" 
+}
+```
+
+### Properties
+Property | Default  | Description
+-------- | -------- | -----------
+`convert`  | `false`   | If `true`, the validator converts ObjectID HexString representation to ObjectID `instance`
 
 
 # Custom validator
 You can also create your custom validator.
 
 ```js
-let v = new Validator({
+const v = new Validator({
     messages: {
         // Register our new error message text
         evenNumber: "The '{field}' field must be an even number! Actual: {actual}"
@@ -848,7 +1118,8 @@ console.log(v.validate({ name: "John", age: 19 }, schema));
 
 Or you can use the `custom` type with an inline checker function:
 ```js
-let v = new Validator({
+const v = new Validator({
+    useNewCustomCheckerFunction: true, // using new version
     messages: {
         // Register our new error message text
         weightMin: "The weight must be greater than {expected}! Actual: {actual}"
@@ -860,10 +1131,10 @@ const schema = {
     weight: {
         type: "custom",
         minWeight: 10,
-        check(value, schema) {
-            return (value < schema.minWeight)
-                ? [{ type: "weightMin", expected: schema.minWeight, actual: value }]
-                : true;
+        check(value, errors, schema) {
+            if (value < minWeight) errors.push({ type: "weightMin", expected: schema.minWeight, actual: value });
+            if (value > 100) value = 100
+            return value
         }
     }
 };
@@ -881,7 +1152,49 @@ console.log(v.validate({ name: "John", weight: 8 }, schema));
         message: 'The weight must be greater than 10! Actual: 8'
     }]
 */
+const o = { name: "John", weight: 110 }
+console.log(v.validate(o, schema));
+/* Returns: true
+   o.weight is 100
+*/
 ```
+>Please note: the custom function must return the `value`. It means you can also sanitize it.
+
+## Custom validation for built-in rules
+You can define a `custom` function in the schema for built-in rules. With it you can extend any built-in rules.
+
+```js
+const v = new Validator({
+    useNewCustomCheckerFunction: true, // using new version
+    messages: {
+        // Register our new error message text
+        phoneNumber: "The phone number must be started with '+'!"
+    }
+});
+
+const schema = {
+    name: { type: "string", min: 3, max: 255 },
+    phone: { type: "string", length: 15, custom(v, errors) => {
+            if (!v.startWith("+")) errors.push({ type: "phoneNumber" })
+            return v.replace(/[^\d+]/g, ""); // Sanitize: remove all special chars except numbers
+        }
+    }	
+};
+
+console.log(v.validate({ name: "John", phone: "+36-70-123-4567" }, schema));
+// Returns: true
+
+console.log(v.validate({ name: "John", phone: "36-70-123-4567" }, schema));
+/* Returns an array with errors:
+    [{
+        message: "The phone number must be started with '+'!",
+        field: 'phone',
+        type: 'phoneNumber'
+    }]
+*/
+```
+
+>Please note: the custom function must return the `value`. It means you can also sanitize it.
 
 # Custom error messages (l10n)
 You can set your custom messages in the validator constructor.
@@ -952,6 +1265,21 @@ v.validate({ firstname: "John", lastname: 23 }, schema );
 ]
 */
 ```
+# Plugins
+You can apply plugins:
+```js
+// Plugin Side
+function myPlugin(validator){
+    // you can modify validator here
+    // e.g.: validator.add(...)
+}
+
+// Validator Side
+const v = new Validator();
+v.plugin(myPlugin)
+
+```
+
 # Message types
 Name                | Default text
 ------------------- | -------------
@@ -968,6 +1296,8 @@ Name                | Default text
 `stringAlpha`	| The '{field}' field must be an alphabetic string.
 `stringAlphanum`	| The '{field}' field must be an alphanumeric string.
 `stringAlphadash`	| The '{field}' field must be an alphadash string.
+`stringHex`	| The '{field}' field must be a hex string.
+`stringSingleLine`	| The '{field}' field must be a single line string.
 `number`	| The '{field}' field must be a number.
 `numberMin`	| The '{field}' field must be greater than or equal to {expected}.
 `numberMax`	| The '{field}' field must be less than or equal to {expected}.
@@ -984,6 +1314,9 @@ Name                | Default text
 `arrayContains`	| The '{field}' field must contain the '{expected}' item.
 `arrayUnique` | The '{actual}' value in '{field}' field does not unique the '{expected}' values.
 `arrayEnum`	| The '{actual}' value in '{field}' field does not match any of the '{expected}' values.
+`tuple`	| The '{field}' field must be an array.
+`tupleEmpty`	| The '{field}' field must not be an empty array.
+`tupleLength`	| The '{field}' field must contain {expected} items.
 `boolean`	| The '{field}' field must be a boolean.
 `function`	| The '{field}' field must be a function.
 `date`	| The '{field}' field must be a Date.
@@ -997,6 +1330,8 @@ Name                | Default text
 `equalField`	| The '{field}' field value must be equal to '{expected}' field value.
 `object`	| The '{field}' must be an Object.
 `objectStrict`	| The object '{field}' contains forbidden keys: '{actual}'.
+`objectMinProps` | "The object '{field}' must contain at least {expected} properties.
+`objectMaxProps` | "The object '{field}' must contain {expected} properties at most.
 `uuid`	| The '{field}' field must be a valid UUID.
 `uuidVersion`	| The '{field}' field must be a valid UUID version provided.
 `mac`	| The '{field}' field must be a valid MAC address.
@@ -1048,6 +1383,7 @@ All files        |      100 |    97.73 |      100 |      100 |                  
   number.js      |      100 |      100 |      100 |      100 |                   |
   object.js      |      100 |      100 |      100 |      100 |                   |
   string.js      |      100 |    95.83 |      100 |      100 |             55,63 |
+  tuple.js       |      100 |      100 |      100 |      100 |                   |
   url.js         |      100 |      100 |      100 |      100 |                   |
   uuid.js        |      100 |      100 |      100 |      100 |                   |
 -----------------|----------|----------|----------|----------|-------------------|

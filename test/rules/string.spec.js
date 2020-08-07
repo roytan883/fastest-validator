@@ -27,6 +27,32 @@ describe("Test rule: string", () => {
 		expect(check("")).toEqual([{ type: "stringEmpty", actual: "", message: "The '' field must not be empty." }]);
 	});
 
+	it("check empty values (using pattern without defining empty value)", () => {
+		const check = v.compile({ $$root: true, type: "string", pattern: "^fastest" });
+
+		expect(check("fastest-validator")).toEqual(true);
+		expect(check("")).toEqual([
+			{ type: "stringPattern", actual: "", "expected": "/^fastest/", message: "The '' field fails to match the required pattern." },
+		]);
+	});
+
+	it("check empty values (using pattern and empty=true)", () => {
+		const check = v.compile({ $$root: true, type: "string", pattern: "^fastest", empty: true });
+
+		expect(check("fastest-validator")).toEqual(true);
+		expect(check("")).toEqual(true);
+	});
+
+	it("check empty values (using pattern and empty=false)", () => {
+		const check = v.compile({ $$root: true, type: "string", pattern: "^fastest", empty: false });
+
+		expect(check("fastest-validator")).toEqual(true);
+		expect(check("")).toEqual([
+			{ type: "stringEmpty", actual: "", message: "The '' field must not be empty." },
+			{ type: "stringPattern", actual: "", "expected": "/^fastest/", message: "The '' field fails to match the required pattern." },
+		]);
+	});
+
 	it("check min length", () => {
 		const check = v.compile({ $$root: true, type: "string", min: 5 });
 
@@ -62,11 +88,11 @@ describe("Test rule: string", () => {
 		expect(check("JOHN")).toEqual(true);
 	});
 
-	it('check pattern with a quote', () => {
-		const check = v.compile({ $$root: true, type: 'string', pattern: /^[a-z0-9 .\-'?!":;\\/,_]+$/i });
+	it("check pattern with a quote", () => {
+		const check = v.compile({ $$root: true, type: "string", pattern: /^[a-z0-9 .\-'?!":;\\/,_]+$/i });
 
-		expect(check('John^')).toEqual([{ field: undefined, type: 'stringPattern', expected: '/^[a-z0-9 .\-\'?!":;\\/,_]+$/i', actual: 'John^', message: 'The \'\' field fails to match the required pattern.' }]);
-		expect(check('JOHN')).toEqual(true);
+		expect(check("John^")).toEqual([{ field: undefined, type: "stringPattern", expected: "/^[a-z0-9 .\-'?!\":;\\/,_]+$/i", actual: "John^", message: "The '' field fails to match the required pattern." }]);
+		expect(check("JOHN")).toEqual(true);
 	});
 
 	it("check contains", () => {
@@ -139,6 +165,29 @@ describe("Test rule: string", () => {
 		expect(check("hello_world")).toEqual(true);
 		expect(check("dashed_string")).toEqual(true);
 
+	});
+
+	it("check hex string", () => {
+		const check = v.compile({ $$root: true, type: "string", hex: true});
+		const message = "The '' field must be a hex string.";
+
+		expect(check("abc")).toEqual([{type: "stringHex", actual: "abc", message }]);
+		expect(check("01020h")).toEqual([{type: "stringHex", actual: "01020h", message }]);
+
+		expect(check("0123456789abcdef")).toEqual(true);
+		expect(check("0123456789abcDEF")).toEqual(true);
+	});
+
+	it("check singleLine string", () => {
+		const check = v.compile({ $$root: true, type: "string", singleLine: true});
+		const message = "The '' field must be a single line string.";
+
+		expect(check("abc")).toEqual(true);
+		expect(check("abc\n")).toEqual([{type: "stringSingleLine", message }]);
+		expect(check(`
+			abc
+			def
+		`)).toEqual([{type: "stringSingleLine", message }]);
 	});
 
 	it("should convert & check values", () => {

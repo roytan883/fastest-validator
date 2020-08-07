@@ -1,48 +1,49 @@
-declare module 'fastest-validator' {
+declare module "fastest-validator" {
 	/**
 	 * Type of all possible Built-in validators names
 	 */
-	type ValidationRuleName =
-		'any'
-		| 'array'
-		| 'boolean'
-		| 'custom'
-		| 'date'
-		| 'email'
-		| 'enum'
-		| 'equal'
-		| 'forbidden'
-		| 'function'
-		| 'luhn'
-		| 'mac'
-		| 'multi'
-		| 'number'
-		| 'object'
-		| 'string'
-		| 'url'
-		| 'uuid'
+	export type ValidationRuleName =
+		| "any"
+		| "array"
+		| "boolean"
+		| "class"
+		| "custom"
+		| "date"
+		| "email"
+		| "enum"
+		| "equal"
+		| "forbidden"
+		| "function"
+		| "luhn"
+		| "mac"
+		| "multi"
+		| "number"
+		| "object"
+		| "string"
+		| "url"
+		| "uuid"
 		| string;
 
 	/**
 	 * Validation schema definition for "any" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#any
 	 */
-	interface RuleAny extends RuleCustom {
+	export interface RuleAny extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'any';
+		type: "any";
 	}
 
 	/**
 	 * Validation schema definition for "array" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#array
 	 */
-	interface RuleArray<T = any> extends RuleCustom {
+	export interface RuleArray<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'array';
+		type: "array";
 		/**
 		 * If true, the validator accepts an empty array [].
 		 * @default true
@@ -78,11 +79,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "boolean" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#boolean
 	 */
-	interface RuleBoolean extends RuleCustom {
+	export interface RuleBoolean extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'boolean';
+		type: "boolean";
 		/**
 		 * if true and the type is not Boolean, try to convert. 1, "true", "1", "on" will be true. 0, "false", "0", "off" will be false.
 		 * @default false
@@ -91,14 +92,29 @@ declare module 'fastest-validator' {
 	}
 
 	/**
-	 * Validation schema definition for "date" built-in validator
-	 * @see https://github.com/icebob/fastest-validator#date
+	 * Validation schema definition for "class" built-in validator
+	 * @see https://github.com/icebob/fastest-validator#class
 	 */
-	interface RuleDate extends RuleCustom {
+	export interface RuleClass<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'date';
+		type: "class";
+		/**
+		 * Checked Class
+		 */
+		instanceOf?: T;
+	}
+
+	/**
+	 * Validation schema definition for "date" built-in validator
+	 * @see https://github.com/icebob/fastest-validator#date
+	 */
+	export interface RuleDate extends RuleCustom {
+		/**
+		 * Name of built-in validator
+		 */
+		type: "date";
 		/**
 		 * if true and the type is not Date, try to convert with new Date()
 		 * @default false
@@ -110,15 +126,20 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "email" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#email
 	 */
-	interface RuleEmail extends RuleCustom {
+	export interface RuleEmail extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'email';
+		type: "email";
+		/**
+		 * If true, the validator accepts an empty string ""
+		 * @default true
+		 */
+		empty?: boolean;
 		/**
 		 * Checker method. Can be quick or precise
 		 */
-		mode?: 'quick' | 'precise';
+		mode?: "quick" | "precise";
 
 		normalize?: boolean;
 	}
@@ -127,11 +148,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "enum" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#enum
 	 */
-	interface RuleEnum<T = any> extends RuleCustom {
+	export interface RuleEnum<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'enum';
+		type: "enum";
 		/**
 		 * The valid values
 		 */
@@ -142,11 +163,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "equal" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#equal
 	 */
-	interface RuleEqual<T = any> extends RuleCustom {
+	export interface RuleEqual<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'equal';
+		type: "equal";
 		/**
 		 * The valid value
 		 */
@@ -170,11 +191,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "forbidden" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#forbidden
 	 */
-	interface RuleForbidden extends RuleCustom {
+	export interface RuleForbidden extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'forbidden';
+		type: "forbidden";
 
 		/**
 		 * Removes the forbidden value.
@@ -189,44 +210,44 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "function" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#function
 	 */
-	interface RuleFunction extends RuleCustom {
+	export interface RuleFunction extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'function';
+		type: "function";
 	}
 
 	/**
 	 * Validation schema definition for "luhn" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#luhn
 	 */
-	interface RuleLuhn extends RuleCustom {
+	export interface RuleLuhn extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'luhn';
+		type: "luhn";
 	}
 
 	/**
 	 * Validation schema definition for "mac" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#mac
 	 */
-	interface RuleMac extends RuleCustom {
+	export interface RuleMac extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'mac';
+		type: "mac";
 	}
 
 	/**
 	 * Validation schema definition for "multi" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#multi
 	 */
-	interface RuleMulti extends RuleCustom {
+	export interface RuleMulti extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'multi';
+		type: "multi";
 
 		rules: RuleCustom[] | string[];
 	}
@@ -235,11 +256,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "number" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#number
 	 */
-	interface RuleNumber extends RuleCustom {
+	export interface RuleNumber extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'number';
+		type: "number";
 		/**
 		 * Minimum value
 		 */
@@ -282,11 +303,11 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for "object" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#object
 	 */
-	interface RuleObject extends RuleCustom {
+	export interface RuleObject extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'object';
+		type: "object";
 		/**
 		 * if true any properties which are not defined on the schema will throw an error.
 		 * @default false
@@ -297,17 +318,43 @@ declare module 'fastest-validator' {
 		 */
 		properties?: ValidationSchema;
 		props?: ValidationSchema;
+		/**
+		 * If set to a number, will throw if the number of props is less than that number.
+		 */
+		minProps?: number;
+		/**
+		 * If set to a number, will throw if the number of props is greater than that number.
+		 */
+		maxProps?: number;
+	}
+
+	export interface RuleObjectID extends RuleCustom {
+		/**
+		 * Name of built-in validator
+		 */
+		type: "objectID";
+		/**
+		 * To inject ObjectID dependency
+		 */
+		ObjectID?: {
+			new (id?: string | number | ObjectIdAbstract): ObjectIdAbstract;
+			isValid(o: any): boolean;
+		};
+		/**
+		 * Convert HexStringObjectID to ObjectID
+		 */
+		convert?: boolean;
 	}
 
 	/**
 	 * Validation schema definition for "string" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#string
 	 */
-	interface RuleString extends RuleCustom {
+	export interface RuleString extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'string';
+		type: "string";
 		/**
 		 * If true, the validator accepts an empty string ""
 		 * @default true
@@ -354,6 +401,16 @@ declare module 'fastest-validator' {
 		 */
 		alphadash?: boolean;
 		/**
+		 * The value must be a hex string
+		 * @default false
+		 */
+		hex?: boolean;
+		/**
+		 * The value must be a singleLine string
+		 * @default false
+		 */
+		singleLine?: boolean;
+		/**
 		 * if true and the type is not a String, converts with String()
 		 * @default false
 		 */
@@ -374,25 +431,45 @@ declare module 'fastest-validator' {
 	}
 
 	/**
-	 * Validation schema definition for "url" built-in validator
-	 * @see https://github.com/icebob/fastest-validator#url
+	 * Validation schema definition for "tuple" built-in validator
+	 * @see https://github.com/icebob/fastest-validator#array
 	 */
-	interface RuleURL extends RuleCustom {
+	export interface RuleTuple<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'url';
+		type: "tuple";
+		/**
+		 * Validation rules that should be applied to the corresponding element of array
+		 */
+		items?: [ValidationRule, ValidationRule];
+	}
+
+	/**
+	 * Validation schema definition for "url" built-in validator
+	 * @see https://github.com/icebob/fastest-validator#url
+	 */
+	export interface RuleURL extends RuleCustom {
+		/**
+		 * Name of built-in validator
+		 */
+		type: "url";
+		/**
+		 * If true, the validator accepts an empty string ""
+		 * @default true
+		 */
+		empty?: boolean;
 	}
 
 	/**
 	 * Validation schema definition for "uuid" built-in validator
 	 * @see https://github.com/icebob/fastest-validator#uuid
 	 */
-	interface RuleUUID extends RuleCustom {
+	export interface RuleUUID extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'uuid';
+		type: "uuid";
 		/**
 		 * UUID version in range 1-5
 		 */
@@ -403,25 +480,22 @@ declare module 'fastest-validator' {
 	 * Validation schema definition for custom inline validator
 	 * @see https://github.com/icebob/fastest-validator#custom-validator
 	 */
-	interface RuleCustomInline<T = any> extends RuleCustom {
+	export interface RuleCustomInline<T = any> extends RuleCustom {
 		/**
 		 * Name of built-in validator
 		 */
-		type: 'custom';
+		type: "custom";
 		/**
-		 *
-		 * @param {{any}} value Value that should be validated
-		 * @param {ValidationRuleObject} schema Validation schema that describes current custom validator
-		 * @return {{true} | ValidationError[]} true if result is valid or array of validation error messages
+		 * Custom checker function
 		 */
-		check: (value: T, schema: ValidationRuleObject, path: string, parent?: object, context?: any) => true | ValidationError[];
+		check: CheckerFunction<T>;
 	}
 
 	/**
 	 * Validation schema definition for custom validator
 	 * @see https://github.com/icebob/fastest-validator#custom-validator
 	 */
-	interface RuleCustom {
+	export interface RuleCustom {
 		/**
 		 * Name of custom validator that will be used in validation rules
 		 */
@@ -443,6 +517,11 @@ declare module 'fastest-validator' {
 		default?: any;
 
 		/**
+		 * Custom checker function
+		 */
+		custom?: CheckerFunction;
+
+		/**
 		 * You can define any additional options for custom validators
 		 */
 		[key: string]: any;
@@ -451,7 +530,7 @@ declare module 'fastest-validator' {
 	/**
 	 * List of all possible keys that can be used for error message override
 	 */
-	interface BuiltInMessages {
+	export interface BuiltInMessages {
 		/**
 		 * The '{field}' field is required.
 		 */
@@ -651,15 +730,16 @@ declare module 'fastest-validator' {
 	/**
 	 * Type with description of custom error messages
 	 */
-	type MessagesType = BuiltInMessages & { [key: string]: string };
+	export type MessagesType = BuiltInMessages & { [key: string]: string };
 
 	/**
 	 * Union type of all possible built-in validators
 	 */
-	type ValidationRuleObject =
-		RuleAny
+	export type ValidationRuleObject =
+		| RuleAny
 		| RuleArray
 		| RuleBoolean
+		| RuleClass
 		| RuleDate
 		| RuleEmail
 		| RuleEqual
@@ -671,7 +751,9 @@ declare module 'fastest-validator' {
 		| RuleMulti
 		| RuleNumber
 		| RuleObject
+		| RuleObjectID
 		| RuleString
+		| RuleTuple
 		| RuleURL
 		| RuleUUID
 		| RuleCustom
@@ -680,35 +762,43 @@ declare module 'fastest-validator' {
 	/**
 	 * Description of validation rule definition for a some property
 	 */
-	type ValidationRule = ValidationRuleObject | ValidationRuleObject[] | ValidationRuleName;
+	export type ValidationRule =
+		| ValidationRuleObject
+		| ValidationRuleObject[]
+		| ValidationRuleName;
 
 	/**
 	 * Definition for validation schema based on validation rules
 	 */
-	interface ValidationSchema {
+	export type ValidationSchema<T = any> = {
 		/**
 		 * Object properties which are not specified on the schema are ignored by default.
-		 * If you set the $$strict option to true any aditional properties will result in an strictObject error.
+		 * If you set the $$strict option to true any additional properties will result in an strictObject error.
 		 * @default false
 		 */
-		$$strict?: boolean;
+		$$strict?: boolean | "remove";
 
+		/**
+		 * Basically the validator expects that you want to validate a Javascript object.
+		 * If you want others, you can define the root level schema.
+		 * @default false
+		 */
 		$$root?: boolean;
-
+	} & {
 		/**
 		 * List of validation rules for each defined field
 		 */
-		[key: string]: ValidationRule | boolean | undefined;
-	}
+		[key in keyof T]: ValidationRule | undefined | any;
+	};
 
 	/**
 	 * Structure with description of validation error message
 	 */
-	interface ValidationError {
+	export interface ValidationError {
 		/**
 		 * Name of validation rule that generates this message
 		 */
-		type: ValidationRuleName;
+		type: keyof BuiltInMessages | string;
 		/**
 		 * Field that catch validation error
 		 */
@@ -716,7 +806,7 @@ declare module 'fastest-validator' {
 		/**
 		 * Description of current validation error
 		 */
-		message: keyof BuiltInMessages | string;
+		message?: string;
 		/**
 		 * Expected value from validation rule
 		 */
@@ -730,15 +820,103 @@ declare module 'fastest-validator' {
 	/**
 	 * List of possible validator constructor options
 	 */
-	type ValidatorConstructorOptions = {
-		debug?: boolean,
+	export interface ValidatorConstructorOptions {
+		debug?: boolean;
 		/**
 		 * List of possible error messages
 		 */
-		messages?: MessagesType,
-	};
+		messages?: MessagesType;
 
-	class Validator {
+		/**
+		 * using checker function v2?
+		 */
+		useNewCustomCheckerFunction?: boolean;
+
+		/**
+		 * Default settings for rules
+		 */
+		defaults?: {
+			[key in ValidationRuleName]: ValidationSchema;
+		};
+
+		/**
+		 * For set aliases
+		 */
+		aliases?: {
+			[key: string]: ValidationRuleObject;
+		};
+
+		/**
+		 * For set custom rules.
+		 */
+		customRules?: {
+			[key: string]: CompilationFunction;
+		};
+
+		/**
+		 * For set plugins.
+		 */
+		plugins?: PluginFn<any>[];
+	}
+
+	export interface CompilationRule {
+		index: number;
+		ruleFunction: CompilationFunction;
+		schema: ValidationSchema;
+		messages: MessagesType;
+	}
+
+	export interface Context {
+		index: number;
+		rules: ValidationRuleObject[];
+		fn: Function[];
+		customs: {
+			[ruleName: string]: { schema: RuleCustom; messages: MessagesType };
+		};
+	}
+
+	export interface CheckerFunctionError {
+		type: string;
+		expected?: unknown;
+		actual?: unknown;
+		field?: string;
+	}
+
+	export type CheckerFunctionV1<T = unknown> = (
+		value: T,
+		ruleSchema: ValidationRuleObject,
+		path: string,
+		parent: object | null,
+		context: Context
+	) => true | ValidationError[];
+	export type CheckerFunctionV2<T = unknown> = (
+		value: T,
+		errors: CheckerFunctionError[],
+		ruleSchema: ValidationRuleObject,
+		path: string,
+		parent: object | null,
+		context: Context
+	) => T;
+
+	export type CheckerFunction<T = unknown> =
+		| CheckerFunctionV1<T>
+		| CheckerFunctionV2<T>;
+
+	export type CompilationFunction = (
+		rule: CompilationRule,
+		path: string,
+		context: Context
+	) => { sanitized?: boolean; source: string };
+
+	export type PluginFn<T = void> = (validator: Validator) => T;
+
+	export class ObjectIdAbstract {
+		static isValid(o: any): boolean;
+		constructor(id?: string | number | ObjectIdAbstract);
+		toHexString(): string;
+	}
+
+	export default class Validator {
 		/**
 		 * List of possible error messages
 		 */
@@ -748,6 +926,11 @@ declare module 'fastest-validator' {
 		 * List of rules attached to current validator
 		 */
 		rules: { [key: string]: ValidationRuleObject };
+
+		/**
+		 * List of aliases attached to current validator
+		 */
+		aliases: { [key: string]: ValidationRule };
 
 		/**
 		 * Constructor of validation class
@@ -760,7 +943,29 @@ declare module 'fastest-validator' {
 		 * @param {string} type
 		 * @param fn
 		 */
-		add(type: string, fn: any): void;
+		add(type: string, fn: CompilationFunction): void;
+
+		/**
+		 * Add a message
+		 *
+		 * @param {String} name
+		 * @param {String} message
+		 */
+		addMessage(name: string, message: string): void;
+
+		/**
+		 * Register an alias in validation object
+		 * @param {string} name
+		 * @param {ValidationRuleObject} validationRule
+		 */
+		alias(name: string, validationRule: ValidationRuleObject): void;
+
+		/**
+		 * Add a plugin
+		 *
+		 * @param {Function} fn
+		 */
+		plugin<T = void>(fn: PluginFn<T>): T;
 
 		/**
 		 * Build error message
@@ -772,62 +977,45 @@ declare module 'fastest-validator' {
 		 * @param {any=} opts.actual
 		 * @param {MessagesType} opts.messages
 		 */
-		makeError(opts: { type: keyof MessagesType, field?: string, expected?: any, actual?: any, messages: MessagesType }): ValidationError;
+		makeError(opts: {
+			type: keyof MessagesType;
+			field?: string;
+			expected?: any;
+			actual?: any;
+			messages: MessagesType;
+		}): string;
 
 		/**
-		 * Compile validator functiona that working up 100 times faster that native validation process
+		 * Compile validator functions that working up 100 times faster that native validation process
 		 * @param {ValidationSchema | ValidationSchema[]} schema Validation schema definition that should be used for validation
-		 * @return {(object: object) => (true | ValidationError[])} function that can be used next for validation of current schema
+		 * @return {(value: any) => (true | ValidationError[])} function that can be used next for validation of current schema
 		 */
-		compile(schema: ValidationSchema | ValidationSchema[]): (object: any) => true | ValidationError[];
+		compile<T = any>(
+			schema: ValidationSchema<T> | ValidationSchema<T>[]
+		): (value: any) => true | ValidationError[];
 
 		/**
 		 * Native validation method to validate obj
-		 * @param {object} obj Object that should be validated
+		 * @param {any} value that should be validated
 		 * @param {ValidationSchema} schema Validation schema definition that should be used for validation
 		 * @return {{true} | ValidationError[]}
 		 */
-		validate(obj: object, schema: ValidationSchema): true | ValidationError[];
+		validate(
+			value: any,
+			schema: ValidationSchema
+		): true | ValidationError[];
 
 		/**
 		 * Get defined in validator rule
 		 * @param {ValidationRuleName | ValidationRuleName[]} name List or name of defined rule
 		 * @return {ValidationRule}
 		 */
-		getRuleFromSchema(name: ValidationRuleName | ValidationRuleName[]): { messages: MessagesType, schema: ValidationSchema, ruleFunction: Function }
+		getRuleFromSchema(
+			name: ValidationRuleName | ValidationRuleName[] | { [key: string]: unknown }
+		): {
+			messages: MessagesType;
+			schema: ValidationSchema;
+			ruleFunction: Function;
+		};
 	}
-
-	export {
-		ValidationRuleName,
-
-		MessagesType,
-		BuiltInMessages,
-
-		RuleAny,
-		RuleArray,
-		RuleBoolean,
-		RuleDate,
-		RuleEmail,
-		RuleEnum,
-		RuleEqual,
-		RuleForbidden,
-		RuleFunction,
-		RuleLuhn,
-		RuleMac,
-		RuleMulti,
-		RuleNumber,
-		RuleObject,
-		RuleString,
-		RuleURL,
-		RuleUUID,
-		RuleCustom,
-		RuleCustomInline,
-
-		ValidationRuleObject,
-		ValidationRule,
-		ValidationSchema,
-		ValidationError,
-	};
-
-	export default Validator;
 }

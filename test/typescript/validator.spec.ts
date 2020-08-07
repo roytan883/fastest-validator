@@ -14,7 +14,7 @@ describe('TypeScript Definitions', () => {
             expect(v.validate).toBeInstanceOf(Function);
             expect(v.add).toBeInstanceOf(Function);
 
-            expect(Object.keys(v.rules)).toHaveProperty('length', 18);
+            expect(Object.keys(v.rules)).toHaveProperty('length', 21);
         });
 
         it('should create instance with custom messages', () => {
@@ -117,10 +117,10 @@ describe('TypeScript Definitions', () => {
             check = v.compile(schema);
 
             const context = {
-                customs: {},
+                customs: expect.any(Object),
                 rules: expect.any(Array),
                 fn: expect.any(Array),
-                index: 2,
+                index: 2
             };
 
             expect(validFn).toHaveBeenCalledTimes(1);
@@ -203,6 +203,24 @@ describe('TypeScript Definitions', () => {
                 expect(res.schema).toEqual({ type: 'string', empty: false, alpha: false, trim: true, some: '1234kg' });
             });
 
+        });
+
+        describe("Test object shorthand rule ($$type)", () => {
+            it("should convert", () => {
+                const res = v.getRuleFromSchema({
+                    $$type: "object",
+                    name: { type: "string" },
+                    age: { type: "number" }
+                });
+
+                expect(res.schema).toEqual({
+                    type: "object" ,
+                    props: {
+                        name: { type: "string" },
+                        age: { type: "number" }
+                    }
+                });
+            });
         });
     });
 

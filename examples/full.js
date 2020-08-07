@@ -2,8 +2,10 @@
 
 const Validator = require("../index");
 const v = new Validator({
+	useNewCustomCheckerFunction: true,
 	messages: {
-		stringMin: "A(z) '{field}' mező túl rövid. Minimum: {expected}, Jelenleg: {actual}"
+		stringMin: "A(z) '{field}' mező túl rövid. Minimum: {expected}, Jelenleg: {actual}",
+		phoneNumber: "The phone number must be started with '+'! Actual: {actual}"
 	}
 });
 
@@ -37,8 +39,14 @@ const schema = {
 	apikey: "forbidden",
 	uuidv4: { type: "uuid", version: 4 },
 	uuid: "uuid",
+	phone: { type: "string", length: 15, custom: (v, errors) => {
+		if (!v.startsWith("+"))
+			errors.push({ type: "phoneNumber", actual: v });
+		return v.replace(/[^\d+]/g, "");
+	} },
 	action: "function",
 	created: "date",
+	raw: { type: "class", instanceOf: Buffer, custom: v => v.toString("base64") },
 	now: { type: "date", convert: true }
 };
 
@@ -86,11 +94,13 @@ const obj = {
 	apikey: null,
 	uuidv4: "10ba038e-48da-487b-96e8-8d3b99b6d18a",
 	uuid:   "10ba038e-48da-487b-96e8-8d3b99b6d18a",
+	phone: "+36-70-123-4567",
 	action: () => {},
 	created: new Date(),
-	now: Date.now()
+	now: Date.now(),
+	raw: Buffer.from([1,2,3])
 };
 
 const res = v.validate(obj, schema);
 
-console.log(res);
+console.log(res, obj);

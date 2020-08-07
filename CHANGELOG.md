@@ -1,4 +1,242 @@
 --------------------------------------------------
+<a name="1.6.0"></a>
+# 1.6.0 (2020-08-06)
+
+## New `objectID` rule
+You can validate BSON/MongoDB ObjectID's
+
+**Example**
+```js
+const  { ObjectID } = require("mongodb") // or anywhere else 
+const schema = {
+    id: {
+        type: "objectID",
+        ObjectID // passing the ObjectID class
+    }  
+}
+const check = v.compile(schema);
+check({ id: "5f082780b00cc7401fb8e8fc" }) // ok
+check({ id: new ObjectID() }) // ok
+check({ id: "5f082780b00cc7401fb8e8" }) // Error
+```
+
+## Dynamic default value
+You can use dynamic default value by defining a function that returns a value.
+
+**Example**
+In the following code, if `createdAt` field not defined in object`, the validator sets the current time into the property:
+```js
+const schema = {
+    createdAt: {
+        type: "date",
+        default: () => new Date()
+    }
+};
+const obj = {}
+v.validate(obj, schema); // Valid
+console.log(obj);
+/*
+{
+    createdAt: Date(2020-07-25T13:17:41.052Z)
+}
+*/
+```
+
+## Changes
+- Add support for uuid v6. [#181](https://github.com/icebob/fastest-validator/issues/181)
+- Add `addMessage` method for using in plugins [#166](https://github.com/icebob/fastest-validator/issues/166)
+- Fix uppercase uuid issue. [#176](https://github.com/icebob/fastest-validator/issues/176)
+- Add `singleLine` property to `string` rule. [#180](https://github.com/icebob/fastest-validator/issues/180)
+
+## Credits
+Many thanks to @intech and @erfanium for contributing.
+
+--------------------------------------------------
+<a name="1.5.1"></a>
+# 1.5.1 (2020-06-19)
+
+## Changes
+- Fixing issue with pattern & empty handling in `string` rule [#165](https://github.com/icebob/fastest-validator/issues/165)
+ 
+--------------------------------------------------
+<a name="1.5.0"></a>
+# 1.5.0 (2020-06-18)
+
+## New `tuple` validation rule
+Thanks for [@Gamote](https://github.com/Gamote), in this version there is a new `tuple`. This rule checks if a value is an `Array` with the elements order as described by the schema.
+
+**Example**
+```js
+const schema = {
+    grade: { type: "tuple", items: ["string", "number", "string"] }
+};
+```
+
+```js
+const schema = {
+    location: { type: "tuple", empty: false, items: [
+        { type: "number", min: 35, max: 45 },
+        { type: "number", min: -75, max: -65 }
+    ] }
+}
+```
+
+## Define aliases & custom rules in constructor options [#162](https://github.com/icebob/fastest-validator/issues/162)
+You can define aliases & custom rules in constructor options instead of using `v.alias` and `v.add`.
+
+**Example**
+
+```js
+const v = new Validator({
+    aliases: {
+        username: {
+            type: 'string',
+            min: 4,
+            max: 30
+        }
+    },
+    customRules: {
+        even: function({ schema, messages }, path, context) {
+            return {
+                source: `
+                    if (value % 2 != 0)
+                        ${this.makeError({ type: "evenNumber",  actual: "value", messages })}
+
+                    return value;
+                `
+            };
+        })
+    }
+});
+```
+
+## Support plugins
+Thanks for [@erfanium](https://github.com/erfanium), you can create plugin for `fastest-validator`.
+
+**Example**
+```js
+// Plugin Side
+function myPlugin(validator){
+    // you can modify validator here
+    // e.g.: validator.add(...)
+    // or  : validator.alias(...)
+}
+// Validator Side
+const v = new Validator();
+v.plugin(myPlugin)
+```
+
+## Changes
+- Allow `empty` property in  `string` rule with pattern [#149](https://github.com/icebob/fastest-validator/issues/149)
+- Add `empty` property to `url` and `email` rule [#150](https://github.com/icebob/fastest-validator/issues/150)
+- Fix custom rule issue when multiple rules [#155](https://github.com/icebob/fastest-validator/issues/155)
+- Update type definition [#156](https://github.com/icebob/fastest-validator/issues/156)
+ 
+ --------------------------------------------------
+<a name="1.4.2"></a>
+# 1.4.2 (2020-06-03)
+
+## Changes
+- added Deno example to readme.
+- added `minProps` and `maxProps` by [@alexjab](https://github.com/alexjab) [#142](https://github.com/icebob/fastest-validator/issues/142)
+- shorthand for nested objectsby [@erfanium](https://github.com/erfanium) [#143](https://github.com/icebob/fastest-validator/issues/143)
+- typescript generics for `compile` method by [@Gamote](https://github.com/Gamote) [#146](https://github.com/icebob/fastest-validator/issues/146)
+
+--------------------------------------------------
+<a name="1.4.1"></a>
+# 1.4.1 (2020-05-13)
+
+## Changes
+- Fix `custom` function issue in `array` rule and in root-level [#136](https://github.com/icebob/fastest-validator/issues/136), [#137](https://github.com/icebob/fastest-validator/issues/137)
+ 
+--------------------------------------------------
+<a name="1.4.0"></a>
+# 1.4.0 (2020-05-08)
+
+## New `custom` function signature
+Thanks for [@erfanium](https://github.com/erfanium), in this version there is a new signature of custom check functions.
+In this new function you should always return the value. It means you can change the value, thus you can also sanitize the input value.
+
+**Old custom function:**
+```js
+const v = new Validator({});
+
+const schema = {
+    weight: {
+        type: "custom",
+        minWeight: 10,
+        check(value, schema) {
+            return (value < schema.minWeight)
+                ? [{ type: "weightMin", expected: schema.minWeight, actual: value }]
+                : true;
+        }
+    }
+};
+```
+
+**New custom function:**
+```js
+const v = new Validator({
+    useNewCustomCheckerFunction: true, // using new version
+});
+
+const schema = {
+    name: { type: "string", min: 3, max: 255 },
+    weight: {
+        type: "custom",
+        minWeight: 10,
+        check(value, errors, schema) {
+            if (value < minWeight) errors.push({ type: "weightMin", expected: schema.minWeight, actual: value });
+            if (value > 100) value = 100
+            return value
+        }
+    }
+};
+```
+
+>Please note: the old version will be removed in the version 2.0.0!
+
+The signature is used in `custom` function of built-in rules.
+
+```js
+const v = new Validator({
+    useNewCustomCheckerFunction: true // using new version
+});
+
+const schema = {
+    phone: { type: "string", length: 15, custom(v, errors) => {
+        if (!v.startWith("+")) errors.push({ type: "phoneNumber" })
+        return v.replace(/[^\d+]/g, ""); // Sanitize: remove all special chars except numbers
+    } }	
+};
+```
+
+--------------------------------------------------
+<a name="1.3.0"></a>
+# 1.3.0 (2020-04-29)
+
+## Changes
+- Add new `class` rule to check the instance of value [#126](https://github.com/icebob/fastest-validator/issues/126)
+- Updated typescript definitions [#127](https://github.com/icebob/fastest-validator/issues/127) [#129](https://github.com/icebob/fastest-validator/issues/129)
+- Fix deep-extend function to detect objects better. [#128](https://github.com/icebob/fastest-validator/issues/128)
+- Add `hex` check to `string` rule [#132](https://github.com/icebob/fastest-validator/issues/132)
+--------------------------------------------------
+<a name="1.2.0"></a>
+# 1.2.0 (2020-04-05)
+
+## Changes
+- Add default settings for built-in rules [#120](https://github.com/icebob/fastest-validator/issues/120) by [@erfanium](https://github.com/erfanium)
+- Updated typescript definitions [#122](https://github.com/icebob/fastest-validator/issues/122) by [@FFKL](https://github.com/FFKL)
+
+--------------------------------------------------
+<a name="1.1.0"></a>
+# 1.1.0 (2020-03-22)
+
+## Changes
+- New user-defined 'alias' feature [#118](https://github.com/icebob/fastest-validator/issues/118) by [@erfanium](https://github.com/erfanium)
+- Add custom validation function for built-in rules [#119](https://github.com/icebob/fastest-validator/issues/119) by [@erfanium](https://github.com/erfanium)
+
+--------------------------------------------------
 <a name="1.0.2"></a>
 # 1.0.2 (2020-02-09)
 
